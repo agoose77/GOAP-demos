@@ -1,38 +1,56 @@
+"""Basic demo using GOAP library
+
+Ellipsis (...) is used to expose the value of a precondition to another action which has an effect with the same name
+The value of that precondition is then used to update the world state when this action is completed.
+In this example, the GoTo action receives the actual location from the precondition of GetAxe and CutTrees
+"""
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 
 from argparse import ArgumentParser
-from goap.planner import ActionBase, GoalBase, Director, Planner
+from goap.action import ActionBase, EvaluationState
+from goap.planner import GoalBase, Planner
+from goap.director import Director
+from time import time
 
 
 class GoTo(ActionBase):
     effects = {'at_location': ...}
 
     def on_enter(self, world_state, goal_state):
-        query = goal_state['at_location']()
-        print("Executing GOTO query: {}".format(query))
+        query = goal_state['at_location']
+        print("Going to find a {}".format(query))
 
 
 class GetAxe(ActionBase):
-    def axe_finder():
-        return "Find me an Axe, Gimli!"
-
     effects = {'has_axe': True}
-    preconditions = {'at_location': axe_finder}
+    preconditions = {'at_location': "axe"}
 
     def on_enter(self, world_state, goal_state):
-        print("Collect ye olde AXE!")
+        print("Collecting ye olde axe!")
 
 
 class CutTrees(ActionBase):
-    def trees_finder():
-        return "Find me the forest of old!"
-
     effects = {"has_wood": True}
-    preconditions = {'at_location': trees_finder, 'has_axe': True}
+    preconditions = {'at_location': "forest", 'has_axe': True}
+
+    def __init__(self):
+        self._start_time = None
 
     def on_enter(self, world_state, goal_state):
-        print("Cut dem treedem!")
+        print("Cutting trees for days!")
+        self._start_time = time()
+
+    def get_status(self, world_state, goal_state):
+        elapsed = time() - self._start_time
+
+        if elapsed < 2:
+            return EvaluationState.running
+
+        return EvaluationState.success
+
+    def on_exit(self, world_state, goal_state):
+        print("I has wood!")
 
 
 class CutTreesGoal(GoalBase):
@@ -69,7 +87,8 @@ if __name__ == "__main__":
         from goap.visualise import visualise_plan
         visualise_plan(plan, args.graph)
 
-    plan.update(world_state)
+    while plan.update(world_state) == EvaluationState.running:
+        continue
 
     print('-' * 50)
     print("Final State:", world_state)

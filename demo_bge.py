@@ -4,9 +4,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from collections.abc import MutableMapping
 from time import monotonic
 
-from goap.planner import ActionBase, GoalBase, Director, Planner
 from goap.fsm import FiniteStateMachine, State
-from goap.enums import EvaluationState
+from goap.action import ActionBase, EvaluationState
+from goap.planner import GoalBase, Planner
+from goap.director import Director
 
 
 class GoToFuture:
