@@ -69,6 +69,12 @@ class CutTrees(Action):
         print("I has wood!")
 
 
+class CutTreesGoal(Goal):
+    priority = 1.0
+
+    state = {"has_wood": True}
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="Run demo GOAP program")
     parser.add_argument("-graph", type=str)
